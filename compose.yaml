@@ -1,0 +1,46 @@
+services:
+  # 1. Aplicación Laravel
+  app:
+    build: .
+    image: localhost/laravel-app:latest
+    container_name: laravel_postulantes
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/var/www/html:Z
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres_postulantes
+      DB_PORT: 5432
+      DB_DATABASE: postulantes_db
+      DB_USERNAME: admin
+      DB_PASSWORD: admin
+    depends_on:
+      - postgres
+    networks:
+      - app_net
+
+  # 2. Base de datos PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_postulantes
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postulantes_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    networks:
+      - app_net
+
+volumes:
+  postgres_data:
+
+networks:
+  app_net:
+    driver: bridge

@@ -1,0 +1,67 @@
+# Environment & Sensitive Files
+.env
+.env.backup
+.env.production
+.env.staging
+.env.*.local
+auth.json
+
+# Dependencies
+/node_modules
+/vendor
+
+# Large Datasets & Database Dumps
+*.csv
+*.tsv
+*.sql.gz
+*.dump
+postulantes_listado.csv
+
+# Laravel Storage & Cache
+/storage/*.key
+/storage/pail
+/storage/app/*
+!/storage/app/.gitignore
+!/storage/app/public/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Build & Compiled Assets
+/public/build
+/public/hot
+/public/storage
+/public/fonts-manifest.dev.json
+
+# Logs & Debug
+*.log
+.phpunit.result.cache
+/.phpunit.cache
+
+# IDEs, Editors & System Files
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.nova
+/.zed
+/.cursor/
+/.codex
+.phpactor.json
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+
+# AI & Assistant Local Configs
+/.agents/
+/.claude/
+/.subversion/
+.mcp.json
+boost.json
