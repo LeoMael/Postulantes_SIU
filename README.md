@@ -6,7 +6,7 @@ Contiene la base de datos completa de postulantes con **167,872 registros** carg
 
 ---
 
-## 🚀 Arquitectura y Tecnologías
+## Arquitectura y Tecnologías
 
 * **Backend:** Laravel (PHP 8.4 CLI con soporte nativo `pdo_pgsql`).
 * **Base de Datos:** PostgreSQL 16 (Alpine).
@@ -28,12 +28,13 @@ Contiene la base de datos completa de postulantes con **167,872 registros** carg
 │                                              │              │
 │                                       Volumen persistente   │
 │                                       (postgres_data)       │
+│                                       (postgres_data)       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 💻 Portabilidad (¿Cómo correrlo en cualquier máquina?)
+## Portabilidad (¿Cómo correrlo en cualquier máquina?)
 
 El proyecto utiliza la especificación abierta **Compose Specification** (`compose.yaml`). Funciona idénticamente con **Docker** o con **Podman**:
 
@@ -42,7 +43,7 @@ El proyecto utiliza la especificación abierta **Compose Specification** (`compo
 
 ---
 
-## 🛠️ Guía Rápida de Comandos
+## Guía Rápida de Comandos
 
 ### Opción 1: Con Docker (Windows, macOS o Linux)
 
@@ -66,7 +67,7 @@ docker compose down
 
 ---
 
-### Opción 2: Con Podman (Linux / Fedora)
+### Opción 2: Con Podman (Linux / Fedora / AlmaLinux)
 
 ```bash
 # 1. Encender los contenedores existentes
@@ -88,49 +89,50 @@ podman stop laravel_postulantes postgres_postulantes
 
 ---
 
-## 🌐 URLs y Accesos
+## URLs y Accesos
 
-| Servicio | URL / Host | Credenciales / Puerto |
-| :--- | :--- | :--- |
-| **Laravel App** | [http://localhost:8000](http://localhost:8000) | Puerto `8000` |
-| **API Postulantes** | [http://localhost:8000/postulantes](http://localhost:8000/postulantes) | JSON paginado |
-| **PostgreSQL (Host)**| `localhost` | Puerto `5433` (BD: `postulantes_db`, Usuario: `admin`, Clave: `admin`) |
+| Servicio | URL / Host | Puerto | Descripción |
+| :--- | :--- | :--- | :--- |
+| **Aplicación Web** | [http://localhost:8000](http://localhost:8000) | `8000` | Interfaz web principal (redirige a `/login`) |
+| **Búsqueda AJAX** | `http://localhost:8000/api/postulantes/buscar` | `8000` | Endpoint JSON paginado |
+| **PostgreSQL (Host)**| `localhost` | `5433` | Conexión directa a la BD (usuario: `admin`, clave: `admin`) |
 
 > [!NOTE]
 > Se utiliza el puerto **`5433`** hacia el host para no entrar en conflicto con instalaciones locales de PostgreSQL que ya ocupen el puerto por defecto `5432`. Internamente en la red de contenedores se comunican por el puerto estándar `5432`.
 
 ---
 
-## 📡 Endpoints de Prueba
+## Credenciales de Acceso
 
-Puedes probar las rutas directamente en el navegador o mediante `curl`:
+### 1. Sistema Web (Inicio de Sesión en `/login`)
 
-#### 1. Listado general de postulantes (paginado a 20 registros):
-```bash
-curl -s "http://localhost:8000/postulantes"
-```
+| Rol | Correo Electrónico | Contraseña | Permisos |
+| :--- | :--- | :--- | :--- |
+| **Administrador** | `admin@unap.edu.pe` | `admin123` | Acceso total, consultas, exportación y gestión de usuarios |
+| **Operador** | `operador@unap.edu.pe` | `operador123` | Consultas, filtros avanzados y exportación a Excel / CSV |
 
-#### 2. Búsqueda por DNI:
-```bash
-curl -s "http://localhost:8000/postulantes?dni=60746497"
-```
+### 2. Base de Datos PostgreSQL
 
-#### 3. Filtro por carrera o programa académico:
-```bash
-curl -s "http://localhost:8000/postulantes?programa=Sistemas"
-```
+* **Host:** `localhost` (o `postgres_postulantes` dentro de la red Docker)
+* **Puerto:** `5433` (desde el host) / `5432` (dentro de los contenedores)
+* **Base de datos:** `postulantes_db`
+* **Usuario:** `admin`
+* **Contraseña:** `admin`
 
 ---
 
-## 🗄️ Base de Datos y Persistencia
+## Base de Datos y Persistencia
 
-* **Tabla:** `postulantes` (167,872 registros provenientes de `postulantes_listado.csv`).
+* **Tabla:** `postulantes` (167,872 registros).
 * **Índices de alto rendimiento:**
   * `idx_postulantes_dni` (búsquedas instantáneas por documento de identidad).
   * `idx_postulantes_proceso` (filtros por proceso de admisión ej. 2026-1, 2026-2).
   * `idx_postulantes_programa` (filtros por carrera).
   * `idx_postulantes_postulante` (búsquedas por nombres y apellidos).
-* **Persistencia:** Gestionada en el volumen `postgres_data`. **Los datos nunca se pierden al apagar los contenedores o reiniciar la computadora.**
+  * `idx_postulantes_filial` (filtros por sede / filial).
+  * `idx_postulantes_unidad` (filtros por facultad / unidad académica).
+  * `idx_postulantes_es_ingresante` (filtros por condición de ingresante).
+* **Persistencia:** Gestionada en el volumen `postgres_data`. Los datos no se pierden al apagar los contenedores o reiniciar el servidor.
 
 Para conectarte directamente a la consola SQL de PostgreSQL:
 ```bash
@@ -139,13 +141,28 @@ Para conectarte directamente a la consola SQL de PostgreSQL:
 
 ---
 
-## 📁 Archivos Clave del Proyecto
+## Importación de Postulantes a PostgreSQL
+
+Para poblar o repoblar la base de datos desde un archivo CSV mediante stream directo (tarda aproximadamente 7 segundos, compatible con Docker y Podman en Ubuntu, AlmaLinux, etc.):
+
+```bash
+# Importar el archivo por defecto (postulantes_listado.csv)
+./importar_datos.sh
+
+# O especificar otro archivo CSV:
+./importar_datos.sh ruta/a/otro_listado.csv
+```
+
+---
+
+## Archivos Clave del Proyecto
 
 * [compose.yaml](compose.yaml): Archivo de orquestación de servicios (Laravel + PostgreSQL).
 * [Dockerfile](Dockerfile): Imagen PHP 8.4 configurada con la extensión PostgreSQL `pdo_pgsql`.
 * [init_db.sql](init_db.sql): Script DDL con la estructura de tablas e índices.
-* [.env.example](.env.example): Plantilla de variables de entorno de Laravel configuradas para la conexión de base de datos.
-* [app/Models/Postulante.php](app/Models/Postulante.php): Modelo Eloquent para interactuar con la tabla de postulantes.
-* [routes/web.php](routes/web.php): Rutas HTTP donde está configurado el endpoint de consulta.
+* [importar_datos.sh](importar_datos.sh): Script para importar el CSV directo a la base de datos en ~7 segundos.
+* [.env.example](.env.example): Plantilla de variables de entorno de Laravel.
+* [app/Models/Postulante.php](app/Models/Postulante.php): Modelo Eloquent para la tabla de postulantes.
+* [routes/web.php](routes/web.php): Definición de rutas web y de autenticación.
 * [artisan.sh](artisan.sh): Script auxiliar para ejecutar comandos `artisan` dentro del contenedor.
 * [conectar_db.sh](conectar_db.sh): Script auxiliar para entrar a la consola interactiva de PostgreSQL (`psql`).
