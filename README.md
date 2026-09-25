@@ -28,7 +28,6 @@ Contiene la base de datos completa de postulantes con **167,872 registros** carg
 │                                              │              │
 │                                       Volumen persistente   │
 │                                       (postgres_data)       │
-│                                       (postgres_data)       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -45,7 +44,9 @@ El proyecto utiliza la especificación abierta **Compose Specification** (`compo
 
 ## Guía Rápida de Comandos
 
-### Opción 1: Con Docker (Windows, macOS o Linux)
+El sistema cuenta con **auto-inicialización completa**: al encenderlo por primera vez (`up -d --build`), el contenedor se encarga automáticamente de crear el archivo `.env`, instalar las dependencias con Composer (`vendor/`), generar la clave de aplicación `APP_KEY`, esperar la conexión a PostgreSQL, y ejecutar migraciones y seeders de usuarios.
+
+### Opción 1: Con Docker (Ubuntu, Debian, macOS o Windows)
 
 ```bash
 # 1. Construir imágenes y encender en segundo plano
@@ -57,9 +58,8 @@ docker compose ps
 # 3. Ver logs de Laravel en vivo
 docker compose logs -f app
 
-# 4. Ejecutar comandos de Laravel Artisan
-docker compose exec app php artisan route:list
-docker compose exec app php artisan make:controller PostulanteController
+# 4. Ejecutar comandos de Artisan (usando el atajo compatible)
+./artisan.sh route:list
 
 # 5. Apagar los contenedores
 docker compose down
@@ -67,11 +67,12 @@ docker compose down
 
 ---
 
-### Opción 2: Con Podman (Linux / Fedora / AlmaLinux)
+### Opción 2: Con Podman (Fedora, AlmaLinux, RHEL o Linux rootless)
 
 ```bash
-# 1. Encender los contenedores existentes
-podman start postgres_postulantes laravel_postulantes
+# 1. Construir imágenes y encender en segundo plano
+podman compose up -d --build
+# (o si ya están creados: podman start postgres_postulantes laravel_postulantes)
 
 # 2. Ver estado de los contenedores
 podman ps
@@ -79,9 +80,8 @@ podman ps
 # 3. Ver logs de Laravel en vivo
 podman logs -f laravel_postulantes
 
-# 4. Ejecutar comandos de Artisan (usando el atajo)
+# 4. Ejecutar comandos de Artisan (usando el atajo compatible)
 ./artisan.sh route:list
-./artisan.sh make:controller PostulanteController
 
 # 5. Apagar los contenedores
 podman stop laravel_postulantes postgres_postulantes
@@ -158,11 +158,12 @@ Para poblar o repoblar la base de datos desde un archivo CSV mediante stream dir
 ## Archivos Clave del Proyecto
 
 * [compose.yaml](compose.yaml): Archivo de orquestación de servicios (Laravel + PostgreSQL).
-* [Dockerfile](Dockerfile): Imagen PHP 8.4 configurada con la extensión PostgreSQL `pdo_pgsql`.
+* [Dockerfile](Dockerfile): Imagen PHP 8.4 configurada con Composer y extensiones necesarias.
+* [docker-entrypoint.sh](docker-entrypoint.sh): Script de arranque autónomo del contenedor (gestiona `.env`, `composer install`, `APP_KEY`, migraciones y seeders).
 * [init_db.sql](init_db.sql): Script DDL con la estructura de tablas e índices.
 * [importar_datos.sh](importar_datos.sh): Script para importar el CSV directo a la base de datos en ~7 segundos.
 * [.env.example](.env.example): Plantilla de variables de entorno de Laravel.
 * [app/Models/Postulante.php](app/Models/Postulante.php): Modelo Eloquent para la tabla de postulantes.
 * [routes/web.php](routes/web.php): Definición de rutas web y de autenticación.
-* [artisan.sh](artisan.sh): Script auxiliar para ejecutar comandos `artisan` dentro del contenedor.
+* [artisan.sh](artisan.sh): Script auxiliar para ejecutar comandos `artisan` dentro del contenedor (compatible con Docker y Podman).
 * [conectar_db.sh](conectar_db.sh): Script auxiliar para entrar a la consola interactiva de PostgreSQL (`psql`).
